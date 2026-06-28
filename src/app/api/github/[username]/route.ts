@@ -6,6 +6,7 @@ import type {
   GitHubProfile,
   GitHubRepository,
 } from "@/features/github/types";
+import { demoUniverseData } from "@/features/github/mockData";
 import { buildLanguageDistribution } from "@/features/universe/math";
 
 type RouteContext = {
@@ -71,6 +72,10 @@ export async function GET(_request: Request, context: RouteContext) {
       },
       { status: 400 },
     );
+  }
+
+  if (safeUsername.toLowerCase() === "demo") {
+    return NextResponse.json(demoUniverseData);
   }
 
   const profileResult = await requestGitHub<GitHubProfile>(

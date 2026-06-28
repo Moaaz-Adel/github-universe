@@ -103,8 +103,8 @@ export function UniverseExperience({ username }: { username: string }) {
         </div>
       </header>
 
-      <section className="grid min-h-screen pt-16 lg:grid-cols-[22rem_minmax(0,1fr)_24rem]">
-        <aside className="z-20 border-b border-white/10 bg-[var(--background)]/80 p-4 backdrop-blur-2xl lg:border-b-0 lg:border-r lg:pt-6">
+      <section className="grid min-h-screen pt-16 lg:h-screen lg:min-h-0 lg:grid-cols-[22rem_minmax(0,1fr)_24rem] lg:overflow-hidden">
+        <aside className="z-20 border-b border-white/10 bg-[var(--background)]/80 p-4 backdrop-blur-2xl lg:overflow-y-auto lg:border-b-0 lg:border-r lg:pt-6">
           <ControlPanel
             isFetching={isFetching}
             languages={languages}
@@ -155,7 +155,7 @@ export function UniverseExperience({ username }: { username: string }) {
           ) : null}
         </section>
 
-        <aside className="z-20 border-t border-white/10 bg-[var(--background)]/80 p-4 backdrop-blur-2xl lg:border-l lg:border-t-0 lg:pt-6">
+        <aside className="z-20 border-t border-white/10 bg-[var(--background)]/80 p-4 backdrop-blur-2xl lg:overflow-y-auto lg:border-l lg:border-t-0 lg:pt-6">
           {data ? (
             <ProfileDashboard data={data} visibleRepos={filteredRepos} />
           ) : (

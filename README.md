@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, enter a GitHub username, and launch the universe.
+Open `http://localhost:3000`, enter a GitHub username, and launch the universe. Use `demo` for the built-in offline sample profile.
 
 Optional:
 

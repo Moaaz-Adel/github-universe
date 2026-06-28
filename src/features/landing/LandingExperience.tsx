@@ -16,7 +16,7 @@ import { FormEvent, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-const examples = ["vercel", "github", "microsoft", "torvalds"];
+const examples = ["demo", "vercel", "github", "microsoft", "torvalds"];
 const featureCards: Array<{
   title: string;
   body: string;

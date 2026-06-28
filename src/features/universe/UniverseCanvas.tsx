@@ -39,6 +39,7 @@ function CameraControls() {
 
   useEffect(() => {
     const nextControls = new ThreeOrbitControls(camera, gl.domElement);
+    camera.lookAt(0, 0, 0);
     nextControls.enablePan = true;
     nextControls.enableZoom = true;
     nextControls.enableRotate = true;
