@@ -6,7 +6,10 @@ import type {
   GitHubProfile,
   GitHubRepository,
 } from "@/features/github/types";
-import { demoUniverseData } from "@/features/github/mockData";
+import {
+  createOfflineUniverseData,
+  demoUniverseData,
+} from "@/features/github/mockData";
 import { buildLanguageDistribution } from "@/features/universe/math";
 
 type RouteContext = {
@@ -29,10 +32,18 @@ function githubHeaders() {
 }
 
 async function requestGitHub<T>(path: string) {
-  const response = await fetch(`${GITHUB_API}${path}`, {
-    headers: githubHeaders(),
-    next: { revalidate: 480 },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${GITHUB_API}${path}`, {
+      headers: githubHeaders(),
+      next: { revalidate: 480 },
+    });
+  } catch {
+    return {
+      offline: true,
+    };
+  }
 
   if (!response.ok) {
     const message =
@@ -45,7 +56,12 @@ async function requestGitHub<T>(path: string) {
     return {
       error: NextResponse.json(
         {
-          code: response.status === 404 ? "NOT_FOUND" : "GITHUB_ERROR",
+          code:
+            response.status === 404
+              ? "NOT_FOUND"
+              : response.status === 403
+                ? "RATE_LIMITED"
+                : "GITHUB_ERROR",
           message,
         },
         { status: response.status },
@@ -82,6 +98,10 @@ export async function GET(_request: Request, context: RouteContext) {
     `/users/${safeUsername}`,
   );
 
+  if ("offline" in profileResult) {
+    return NextResponse.json(createOfflineUniverseData(safeUsername));
+  }
+
   if ("error" in profileResult) {
     return profileResult.error;
   }
@@ -98,6 +118,9 @@ export async function GET(_request: Request, context: RouteContext) {
     ),
   ]);
 
+  if ("offline" in repoResult || "offline" in orgResult) {
+    return NextResponse.json(createOfflineUniverseData(safeUsername));
+  }
   if ("error" in repoResult) return repoResult.error;
   if ("error" in orgResult) return orgResult.error;
 

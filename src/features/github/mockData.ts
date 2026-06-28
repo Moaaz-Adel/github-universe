@@ -15,7 +15,7 @@ function daysAgo(days: number) {
   return date.toISOString();
 }
 
-const owner = {
+const demoOwner = {
   login: "demo",
   avatar_url: "https://avatars.githubusercontent.com/u/9919?v=4",
   html_url: "https://github.com/github",
@@ -160,8 +160,8 @@ const profile: GitHubProfile = {
   login: "demo",
   name: "GitHub Universe Demo",
   bio: "A local sample account for exploring the universe without GitHub API access.",
-  avatar_url: owner.avatar_url,
-  html_url: owner.html_url,
+  avatar_url: demoOwner.avatar_url,
+  html_url: demoOwner.html_url,
   followers: 12840,
   following: 42,
   public_repos: repositories.length,
@@ -177,14 +177,14 @@ const organizations: GitHubOrganization[] = [
   {
     id: 1,
     login: "octo-labs",
-    avatar_url: owner.avatar_url,
+    avatar_url: demoOwner.avatar_url,
     description: "Experimental developer tools.",
     url: "https://api.github.com/orgs/octo-labs",
   },
   {
     id: 2,
     login: "stellar-systems",
-    avatar_url: owner.avatar_url,
+    avatar_url: demoOwner.avatar_url,
     description: "Design infrastructure for product teams.",
     url: "https://api.github.com/orgs/stellar-systems",
   },
@@ -214,6 +214,58 @@ export const demoUniverseData: UniverseData = {
     reset: null,
   },
 };
+
+export function createOfflineUniverseData(username: string): UniverseData {
+  const login = username.toLowerCase();
+  const initial = login.slice(0, 1).toUpperCase();
+  const avatarSvg = encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="24" fill="#101322"/><circle cx="48" cy="48" r="30" fill="#56f0b2"/><text x="48" y="58" font-family="Arial,sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#070713">${initial}</text></svg>`,
+  );
+  const owner = {
+    login,
+    avatar_url: `data:image/svg+xml,${avatarSvg}`,
+    html_url: `https://github.com/${login}`,
+  };
+  const offlineRepositories = repositories.map((repository, index) => ({
+    ...repository,
+    id: 1000 + index,
+    full_name: `${login}/${repository.name}`,
+    html_url: `https://github.com/${login}/${repository.name}`,
+    owner,
+    topics: [
+      "offline",
+      ...repository.topics.filter((topic) => topic !== "demo"),
+    ],
+  }));
+  const offlineEvents = events.map((event, index) => ({
+    ...event,
+    id: `${login}-offline-event-${index}`,
+    repo: {
+      name: `${login}/${offlineRepositories[index % offlineRepositories.length].name}`,
+    },
+  }));
+
+  return {
+    profile: {
+      ...profile,
+      login,
+      name: `${username} Offline Universe`,
+      bio: "GitHub could not be reached from this environment, so this fallback universe uses local sample telemetry.",
+      avatar_url: owner.avatar_url,
+      html_url: owner.html_url,
+      public_repos: offlineRepositories.length,
+    },
+    repositories: offlineRepositories,
+    organizations,
+    events: offlineEvents,
+    languages: buildLanguageDistribution(offlineRepositories),
+    fetchedAt: new Date().toISOString(),
+    rateLimit: {
+      remaining: "offline",
+      reset: null,
+    },
+  };
+}
 
 function repo(
   id: number,
@@ -247,6 +299,6 @@ function repo(
     pushed_at: daysAgo(updatedDaysAgo),
     updated_at: daysAgo(updatedDaysAgo),
     created_at: daysAgo(900 - id * 24),
-    owner,
+    owner: demoOwner,
   };
 }
