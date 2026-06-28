@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.env*.local
+.next
+.npm-cache
+coverage
+node_modules
+node_modules.incomplete
+next-env.d.ts
+dist
+*.tsbuildinfo
