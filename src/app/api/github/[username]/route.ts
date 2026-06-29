@@ -15,17 +15,26 @@ type RouteContext = {
 };
 
 const GITHUB_API = "https://api.github.com";
+const GITHUB_CACHE_TTL_MS = 8 * 60 * 1000;
+
+type GitHubSuccess<T> = {
+  data: T;
+  headers: Headers;
+  status: number;
+};
+
 type GitHubResponse<T> =
-  | {
-      data: T;
-      headers: Headers;
-      status: number;
-    }
+  | GitHubSuccess<T>
   | {
       error: NextResponse;
       headers?: Headers;
       status?: number;
     };
+
+const githubResponseCache = new Map<
+  string,
+  { expiresAt: number; response: GitHubSuccess<unknown> }
+>();
 
 function githubHeaders() {
   const headers: HeadersInit = {
@@ -42,6 +51,12 @@ function githubHeaders() {
 }
 
 async function requestGitHub<T>(path: string): Promise<GitHubResponse<T>> {
+  const cached = getCachedGitHubResponse<T>(path);
+
+  if (cached) {
+    return cached;
+  }
+
   try {
     const response = await fetch(`${GITHUB_API}${path}`, {
       headers: githubHeaders(),
@@ -52,11 +67,11 @@ async function requestGitHub<T>(path: string): Promise<GitHubResponse<T>> {
       return githubErrorResponse(response.status, response.headers);
     }
 
-    return {
+    return cacheGitHubResponse(path, {
       data: (await response.json()) as T,
-      headers: response.headers,
+      headers: new Headers(response.headers),
       status: response.status,
-    };
+    });
   } catch (error) {
     if (
       process.env.NODE_ENV === "development" &&
@@ -78,13 +93,49 @@ async function requestGitHub<T>(path: string): Promise<GitHubResponse<T>> {
   }
 }
 
+function getCachedGitHubResponse<T>(path: string): GitHubSuccess<T> | null {
+  const cached = githubResponseCache.get(path);
+
+  if (!cached) {
+    return null;
+  }
+
+  if (cached.expiresAt <= Date.now()) {
+    githubResponseCache.delete(path);
+    return null;
+  }
+
+  return {
+    data: cached.response.data as T,
+    headers: new Headers(cached.response.headers),
+    status: cached.response.status,
+  };
+}
+
+function cacheGitHubResponse<T>(
+  path: string,
+  response: GitHubSuccess<T>,
+): GitHubSuccess<T> {
+  githubResponseCache.set(path, {
+    expiresAt: Date.now() + GITHUB_CACHE_TTL_MS,
+    response: {
+      data: response.data,
+      headers: new Headers(response.headers),
+      status: response.status,
+    },
+  });
+
+  return response;
+}
+
 function githubErrorResponse(
   status: number,
   headers?: Headers,
 ): GitHubResponse<never> {
+  const resetMessage = formatRateLimitReset(headers);
   const message =
     status === 403
-      ? "GitHub rate limit reached. Add GITHUB_TOKEN to raise the limit."
+      ? `GitHub's public API limit is exhausted${resetMessage}. Try again later, or add an optional GITHUB_TOKEN to raise the limit.`
       : status === 404
         ? "That GitHub profile was not found."
         : "GitHub returned an unexpected response.";
@@ -105,6 +156,26 @@ function githubErrorResponse(
     headers,
     status,
   };
+}
+
+function formatRateLimitReset(headers?: Headers) {
+  const reset = headers?.get("x-ratelimit-reset");
+
+  if (!reset) {
+    return "";
+  }
+
+  const resetDate = new Date(Number(reset) * 1000);
+
+  if (Number.isNaN(resetDate.getTime())) {
+    return "";
+  }
+
+  return ` until ${resetDate.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  })}`;
 }
 
 function isLocalCertificateError(error: unknown) {
@@ -158,11 +229,13 @@ function requestGitHubWithDevelopmentTlsBypass<T>(
           }
 
           try {
-            resolve({
-              data: JSON.parse(body) as T,
-              headers: responseHeaders,
-              status,
-            });
+            resolve(
+              cacheGitHubResponse(path, {
+                data: JSON.parse(body) as T,
+                headers: responseHeaders,
+                status,
+              }),
+            );
           } catch {
             resolve(githubErrorResponse(502, responseHeaders));
           }

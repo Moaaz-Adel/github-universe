@@ -6,6 +6,9 @@ type RouteContext = {
 };
 
 const GITHUB_API = "https://api.github.com";
+const README_CACHE_TTL_MS = 15 * 60 * 1000;
+
+const readmeCache = new Map<string, { expiresAt: number; readme: string }>();
 
 function githubHeaders() {
   const headers: HeadersInit = {
@@ -79,9 +82,14 @@ async function fetchReadme(path: string) {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { username, repo } = await context.params;
-  const response = await fetchReadme(
-    `/repos/${encodeURIComponent(username)}/${encodeURIComponent(repo)}/readme`,
-  );
+  const path = `/repos/${encodeURIComponent(username)}/${encodeURIComponent(repo)}/readme`;
+  const cachedReadme = getCachedReadme(path);
+
+  if (cachedReadme !== null) {
+    return NextResponse.json({ readme: cachedReadme });
+  }
+
+  const response = await fetchReadme(path);
 
   if (!response?.ok) {
     return NextResponse.json(
@@ -91,8 +99,29 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const readme = await response.text();
+  const preview = readme.slice(0, 7000);
+
+  readmeCache.set(path, {
+    expiresAt: Date.now() + README_CACHE_TTL_MS,
+    readme: preview,
+  });
 
   return NextResponse.json({
-    readme: readme.slice(0, 7000),
+    readme: preview,
   });
+}
+
+function getCachedReadme(path: string) {
+  const cached = readmeCache.get(path);
+
+  if (!cached) {
+    return null;
+  }
+
+  if (cached.expiresAt <= Date.now()) {
+    readmeCache.delete(path);
+    return null;
+  }
+
+  return cached.readme;
 }

@@ -115,7 +115,7 @@ export function LandingExperience() {
               <input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder="Enter a GitHub username"
+                placeholder="GitHub username or owner/repo"
                 autoComplete="off"
                 className="h-14 w-full rounded-full border border-transparent bg-white/10 pl-12 pr-4 text-base outline-none transition placeholder:text-[var(--muted)] focus:border-aurora/60"
               />
@@ -176,6 +176,7 @@ export function LandingExperience() {
 function normalizeGithubInput(value: string) {
   const trimmed = value.trim().replace(/^@/, "");
   const lowerTrimmed = trimmed.toLowerCase();
+  const pathParts = trimmed.split("/").filter(Boolean);
 
   try {
     const url = new URL(
@@ -186,10 +187,10 @@ function normalizeGithubInput(value: string) {
       return url.pathname.split("/").filter(Boolean)[0] ?? "";
     }
   } catch {
-    return trimmed;
+    return pathParts[0] ?? trimmed;
   }
 
-  return trimmed;
+  return pathParts[0] ?? trimmed;
 }
 
 function LandingOrbit() {
