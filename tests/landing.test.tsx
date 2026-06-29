@@ -22,6 +22,6 @@ describe("LandingExperience", () => {
     await user.type(screen.getByLabelText("GitHub username"), "@vercel");
     await user.click(screen.getByRole("button", { name: /launch/i }));
 
-    expect(push).toHaveBeenCalledWith("/universe/vercel");
+    expect(push).toHaveBeenCalledWith("/universe?username=vercel");
   });
 });

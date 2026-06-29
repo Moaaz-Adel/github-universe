@@ -9,3 +9,11 @@ export default async function UniversePage({ params }: PageProps) {
 
   return <UniverseExperience username={username} />;
 }
+
+export function generateStaticParams() {
+  return ["demo", "vercel", "github", "microsoft", "torvalds"].map(
+    (username) => ({
+      username,
+    }),
+  );
+}

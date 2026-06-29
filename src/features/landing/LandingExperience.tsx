@@ -48,7 +48,7 @@ export function LandingExperience() {
     const normalized = normalizeGithubInput(username);
 
     if (normalized) {
-      router.push(`/universe/${encodeURIComponent(normalized)}`);
+      router.push(`/universe?username=${encodeURIComponent(normalized)}`);
     }
   }
 
@@ -140,7 +140,7 @@ export function LandingExperience() {
               <button
                 key={example}
                 type="button"
-                onClick={() => router.push(`/universe/${example}`)}
+                onClick={() => router.push(`/universe?username=${example}`)}
                 className="rounded-full border border-white/15 px-3 py-1.5 text-[var(--foreground)] transition hover:border-aurora/50 hover:bg-aurora/10"
               >
                 @{example}
