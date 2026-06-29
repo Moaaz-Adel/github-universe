@@ -45,7 +45,7 @@ export function LandingExperience() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const normalized = username.trim().replace(/^@/, "");
+    const normalized = normalizeGithubInput(username);
 
     if (normalized) {
       router.push(`/universe/${encodeURIComponent(normalized)}`);
@@ -171,6 +171,25 @@ export function LandingExperience() {
       </section>
     </main>
   );
+}
+
+function normalizeGithubInput(value: string) {
+  const trimmed = value.trim().replace(/^@/, "");
+  const lowerTrimmed = trimmed.toLowerCase();
+
+  try {
+    const url = new URL(
+      lowerTrimmed.startsWith("github.com") ? `https://${trimmed}` : trimmed,
+    );
+
+    if (url.hostname === "github.com" || url.hostname.endsWith(".github.com")) {
+      return url.pathname.split("/").filter(Boolean)[0] ?? "";
+    }
+  } catch {
+    return trimmed;
+  }
+
+  return trimmed;
 }
 
 function LandingOrbit() {
