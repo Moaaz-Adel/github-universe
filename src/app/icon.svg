@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="16" fill="#070713" />
+  <circle cx="48" cy="14" r="2" fill="#f6f4ef" opacity=".8" />
+  <circle cx="15" cy="48" r="1.6" fill="#56f0b2" opacity=".9" />
+  <circle cx="18" cy="17" r="1.2" fill="#ffb84d" opacity=".8" />
+  <ellipse
+    cx="32"
+    cy="32"
+    rx="23"
+    ry="10"
+    fill="none"
+    stroke="#8d7cff"
+    stroke-width="3"
+    opacity=".78"
+    transform="rotate(-28 32 32)"
+  />
+  <ellipse
+    cx="32"
+    cy="32"
+    rx="23"
+    ry="10"
+    fill="none"
+    stroke="#56f0b2"
+    stroke-width="2"
+    opacity=".72"
+    transform="rotate(28 32 32)"
+  />
+  <circle cx="32" cy="32" r="11" fill="#56f0b2" />
+  <circle cx="28" cy="28" r="4" fill="#f6f4ef" opacity=".55" />
+  <path
+    d="M41 33c0 5-4 9-9 9s-9-4-9-9c4 3 14 3 18 0Z"
+    fill="#0b1020"
+    opacity=".28"
+  />
+</svg>
