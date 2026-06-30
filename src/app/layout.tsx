@@ -7,6 +7,13 @@ export const metadata: Metadata = {
   title: "GitHub Universe",
   description:
     "Transform GitHub profiles into living galaxies of repositories, languages, stars, and activity.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {
